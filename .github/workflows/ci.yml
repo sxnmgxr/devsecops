@@ -110,7 +110,7 @@ jobs:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
       - name: Upload Semgrep results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: semgrep.sarif
@@ -129,18 +129,33 @@ jobs:
         with:
           python-version: '3.11'
 
-      # FIX 3: Install deps before Snyk scan so it can resolve the graph.
+      # FIX: Auto-correct invalid version strings before install
+      #      e.g. httpx==0.27.0e → httpx==0.27.0 (trailing letters break pip)
+      - name: Fix invalid versions in requirements.txt
+        run: sed -i -E 's/==[0-9]+\.[0-9]+\.[0-9]+[a-zA-Z]+[a-zA-Z0-9]*/==\0/g; s/==([0-9]+\.[0-9]+\.[0-9]+)[a-zA-Z]+[a-zA-Z0-9]*/==\1/g' requirements.txt || true
+
+      - name: Sanitize requirements.txt
+        run: python3 -c "
+import re, sys
+lines = open('requirements.txt').readlines()
+fixed = []
+for line in lines:
+    cleaned = re.sub(r'(==\d+\.\d+\.\d+)[a-zA-Z]\w*', r'\1', line)
+    if cleaned != line:
+        print(f'Fixed: {line.strip()} → {cleaned.strip()}')
+    fixed.append(cleaned)
+open('requirements.txt', 'w').writelines(fixed)
+print('requirements.txt sanitized successfully.')
+"
+
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      # FIX 4: Corrected invalid version httpx==0.27.0e → httpx==0.27.0
-      #         (done in requirements.txt — see note below)
-
-      # FIX 5: snyk/actions/python@master now has Poetry validation.
-      #         Pass --package-manager=pip so Snyk skips pyproject.toml parsing.
+      # FIX: snyk/actions/python@master has Poetry validation issues.
+      #      Pass --package-manager=pip to bypass pyproject.toml parsing.
       - name: Snyk vulnerability scan
         uses: snyk/actions/python@master
-        continue-on-error: true              # Report findings; don't hard-block
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -150,9 +165,11 @@ jobs:
             --package-manager=pip
             --sarif-file-output=snyk.sarif
 
+      # FIX: Guard upload — snyk.sarif only exists if Snyk ran successfully.
+      #      Also upgraded codeql-action v3 → v4 (v3 deprecated Dec 2026).
       - name: Upload Snyk results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('snyk.sarif') != ''
         with:
           sarif_file: snyk.sarif
 
@@ -207,7 +224,7 @@ jobs:
           exit-code: '1'
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()                         # Upload even if Trivy found issues
         with:
           sarif_file: trivy-results.sarif
