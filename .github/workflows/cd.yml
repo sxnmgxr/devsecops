@@ -44,9 +44,4 @@ jobs:
         run: |
           echo "Deploying to production..."
           docker compose -f docker-compose.yml up -d
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v1
-        with:
-          payload: '{"text":"✅ book-ticketing-app deployed to production — ${{ github.sha }}"}'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  
