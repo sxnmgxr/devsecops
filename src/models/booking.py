@@ -1,8 +1,13 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum
-from sqlalchemy.orm import relationship
-from src.database import Base
-from datetime import datetime
 import enum
+from datetime import datetime
+
+from sqlalchemy import (
+    Column, Enum, Float, DateTime,
+    ForeignKey, Integer, String
+)
+from sqlalchemy.orm import relationship
+
+from src.database import Base
 
 
 class BookingStatus(str, enum.Enum):
