@@ -26,7 +26,7 @@ def list_events(
     min_price: Optional[float] = Query(None),
     max_price: Optional[float] = Query(None),
     skip: int = 0,
-    limit: int = 20
+    limit: int = 20,
 ):
     query = db.query(Event).filter(Event.is_active)
     if search:
@@ -43,5 +43,6 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=404, detail="Event not found")
     return event

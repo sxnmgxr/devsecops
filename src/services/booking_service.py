@@ -14,28 +14,20 @@ class BookingService:
 
     def _generate_reference(self) -> str:
         chars = string.ascii_uppercase + string.digits
-        return ''.join(random.choices(chars, k=10))
+        return "".join(random.choices(chars, k=10))
 
-    async def create_booking(
-        self, user_id: int, event_id: int, seats: int
-    ) -> Booking:
+    async def create_booking(self, user_id: int, event_id: int, seats: int) -> Booking:
         event = (
-            self.db.query(Event)
-            .filter(Event.id == event_id)
-            .with_for_update()
-            .first()
+            self.db.query(Event).filter(Event.id == event_id).with_for_update().first()
         )
 
         if not event:
             raise HTTPException(status_code=404, detail="Event not found")
         if event.available_seats < seats:
-            raise HTTPException(
-                status_code=400, detail="Not enough seats available"
-            )
+            raise HTTPException(status_code=400, detail="Not enough seats available")
         if seats < 1 or seats > 10:
             raise HTTPException(
-                status_code=400,
-                detail="You can book between 1 and 10 seats"
+                status_code=400, detail="You can book between 1 and 10 seats"
             )
 
         total_price = event.price * seats
@@ -50,7 +42,7 @@ class BookingService:
             seats=seats,
             total_price=total_price,
             status=BookingStatus.CONFIRMED,
-            reference=self._generate_reference()
+            reference=self._generate_reference(),
         )
 
         event.available_seats -= seats
@@ -63,27 +55,17 @@ class BookingService:
         return booking
 
     def get_by_reference(self, reference: str) -> Booking:
-        return (
-            self.db.query(Booking)
-            .filter(Booking.reference == reference)
-            .first()
-        )
+        return self.db.query(Booking).filter(Booking.reference == reference).first()
 
     async def cancel_booking(self, reference: str, user_id: int):
         booking = self.get_by_reference(reference)
         if not booking or booking.user_id != user_id:
             raise HTTPException(status_code=404, detail="Booking not found")
         if booking.status == BookingStatus.CANCELLED:
-            raise HTTPException(
-                status_code=400, detail="Booking already cancelled"
-            )
+            raise HTTPException(status_code=400, detail="Booking already cancelled")
 
         booking.status = BookingStatus.CANCELLED
-        event = (
-            self.db.query(Event)
-            .filter(Event.id == booking.event_id)
-            .first()
-        )
+        event = self.db.query(Event).filter(Event.id == booking.event_id).first()
         event.available_seats += booking.seats
 
         self.db.commit()

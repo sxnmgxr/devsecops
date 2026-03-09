@@ -27,13 +27,11 @@ class BookingResponse(BaseModel):
 async def create_booking(
     payload: BookingRequest,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = BookingService(db)
     booking = await service.create_booking(
-        user_id=current_user.id,
-        event_id=payload.event_id,
-        seats=payload.seats
+        user_id=current_user.id, event_id=payload.event_id, seats=payload.seats
     )
     return booking
 
@@ -42,7 +40,7 @@ async def create_booking(
 async def get_booking(
     reference: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = BookingService(db)
     booking = service.get_by_reference(reference)
@@ -55,7 +53,7 @@ async def get_booking(
 async def cancel_booking(
     reference: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = BookingService(db)
     await service.cancel_booking(reference, current_user.id)

@@ -28,7 +28,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     user = User(
         email=payload.email,
         full_name=payload.full_name,
-        hashed_password=hash_password(payload.password)
+        hashed_password=hash_password(payload.password),
     )
     db.add(user)
     db.commit()
@@ -36,14 +36,9 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(
-    form_data: dict = Depends(),
-    db: Session = Depends(get_db)
-):
+def login(form_data: dict = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form_data["username"]).first()
-    if not user or not verify_password(
-            form_data["password"],
-            user.hashed_password):
+    if not user or not verify_password(form_data["password"], user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": str(user.id), "email": user.email})
     return {"access_token": token}

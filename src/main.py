@@ -7,7 +7,7 @@ from src.database import init_db
 app = FastAPI(
     title="Book Ticketing API",
     description="API for booking tickets to shows, concerts, and events",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 app.add_middleware(

@@ -19,8 +19,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(data: dict) -> str:
     payload = data.copy()
-    payload["exp"] = datetime.utcnow(
-    ) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
+    payload["exp"] = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
 
 
@@ -30,5 +29,5 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return payload
     except JWTError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token")
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
