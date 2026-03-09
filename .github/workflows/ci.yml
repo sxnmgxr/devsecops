@@ -219,11 +219,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # FIX: Pinned to a stable version tag (not @master which can break)
-      # FIX: exit-code '0' so Trivy doesn't block SARIF upload when findings exist
-      #      The upload-sarif step reports findings in GitHub Security tab instead.
+      # FIX: Upgraded trivy-action from 0.30.0 to 0.35.0 (latest).
+      #      Releases v0.27.0–v0.69.1 of Trivy were deleted after a security
+      #      incident on 2026-03-01, so trivy-action@0.30.0 can no longer
+      #      download its binary (v0.60.0). Use 0.35.0 which pulls v0.69.3 — 
+      #      the current safe, stable release.
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: sarif
