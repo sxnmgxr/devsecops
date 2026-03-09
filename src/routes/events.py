@@ -6,7 +6,9 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
+
 router = APIRouter()
+
 
 class EventResponse(BaseModel):
     id: int
@@ -15,6 +17,7 @@ class EventResponse(BaseModel):
     event_date: datetime
     available_seats: int
     price: float
+
 
 @router.get("/", response_model=List[EventResponse])
 def list_events(
@@ -25,7 +28,7 @@ def list_events(
     skip: int = 0,
     limit: int = 20
 ):
-    query = db.query(Event).filter(Event.is_active == True)
+    query = db.query(Event).filter(Event.is_active)
     if search:
         query = query.filter(Event.title.ilike(f"%{search}%"))
     if min_price:
@@ -33,6 +36,7 @@ def list_events(
     if max_price:
         query = query.filter(Event.price <= max_price)
     return query.offset(skip).limit(limit).all()
+
 
 @router.get("/{event_id}", response_model=EventResponse)
 def get_event(event_id: int, db: Session = Depends(get_db)):
