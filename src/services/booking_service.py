@@ -1,11 +1,13 @@
 import random
 import string
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
 from src.models.booking import Booking, BookingStatus
 from src.models.event import Event
-from src.services.payment_service import PaymentService
 from src.services.email_service import EmailService
+from src.services.payment_service import PaymentService
 
 
 class BookingService:

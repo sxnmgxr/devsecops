@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
-from src.database import get_db
-from src.models.event import Event
-from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from src.database import get_db
+from src.models.event import Event
 
 router = APIRouter()
 
